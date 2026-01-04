@@ -1,71 +1,44 @@
 const express = require("express");
+const fetch = require("node-fetch");
 const cors = require("cors");
-const { request } = require("http"); // for MJPEG streaming
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// List of all cameras
-const cameras = [
-  { id: "cam1", name: "139.64.168.120 cam 1", url: "http://139.64.168.120:8080/cam_1.cgi" },
-  { id: "cam2", name: "139.64.168.120 cam 2", url: "http://139.64.168.120:8080/cam_2.cgi" },
-  { id: "cam3", name: "139.64.168.120 cam 3", url: "http://139.64.168.120:8080/cam_3.cgi" },
-  { id: "cam4", name: "139.64.168.120 cam 4", url: "http://139.64.168.120:8080/cam_4.cgi" },
+// Camera URLs (only cam_1 for cameras 3, 6, 7 as requested)
+const CAMERA_URLS = {
+  1: "http://75.149.26.30:1024/cam_1.cgi",
+  2: "http://139.64.168.120:8080/cam_1.cgi",
+  3: "http://72.199.200.5:8080/cam_1.cgi",      // cam_1 only
+  4: "http://76.151.170.119:10001/cam_1.cgi",
+  5: "http://73.170.86.90:8888/cam_1.cgi",
+  6: "http://213.144.145.239:8090/cam_1.cgi",   // cam_1 only
+  7: "http://158.174.215.151:8203/cam_1.cgi",   // cam_1 only
+  8: "http://61.78.164.58:8089/cam_1.cgi",
+  9: "http://fanfulla.ddns.net:8080/cam_1.cgi",
+ 10: "http://85.93.53.175:8080/cam_1.cgi"
+};
 
-  { id: "cam5", name: "72.199.200.5 cam 1", url: "http://72.199.200.5:8080/cam_1.cgi" },
-  { id: "cam6", name: "72.199.200.5 cam 2", url: "http://72.199.200.5:8080/cam_2.cgi" },
-
-  { id: "cam7", name: "76.151.170.119 cam 1", url: "http://76.151.170.119:10001/cam_1.cgi" },
-
-  { id: "cam8", name: "73.170.86.90 cam 1", url: "http://73.170.86.90:8888/cam_1.cgi" },
-  { id: "cam9", name: "73.170.86.90 cam 2", url: "http://73.170.86.90:8888/cam_2.cgi" },
-  { id: "cam10", name: "73.170.86.90 cam 3", url: "http://73.170.86.90:8888/cam_3.cgi" },
-  { id: "cam11", name: "73.170.86.90 cam 4", url: "http://73.170.86.90:8888/cam_4.cgi" },
-  { id: "cam12", name: "73.170.86.90 cam 5", url: "http://73.170.86.90:8888/cam_5.cgi" },
-  { id: "cam13", name: "73.170.86.90 cam 6", url: "http://73.170.86.90:8888/cam_6.cgi" },
-  { id: "cam14", name: "73.170.86.90 cam 7", url: "http://73.170.86.90:8888/cam_7.cgi" },
-
-  { id: "cam15", name: "213.144.145.239 cam 1", url: "http://213.144.145.239:8090/cam_1.cgi" },
-  { id: "cam16", name: "213.144.145.239 cam 2", url: "http://213.144.145.239:8090/cam_2.cgi" },
-
-  { id: "cam17", name: "158.174.215.151 cam 1", url: "http://158.174.215.151:8203/cam_1.cgi" },
-
-  { id: "cam18", name: "61.78.164.58 cam 1", url: "http://61.78.164.58:8089/cam_1.cgi" },
-
-  { id: "cam19", name: "fanfulla.ddns.net cam 1", url: "http://fanfulla.ddns.net:8080/cam_1.cgi" },
-  { id: "cam20", name: "fanfulla.ddns.net cam 2", url: "http://fanfulla.ddns.net:8080/cam_2.cgi" },
-  { id: "cam21", name: "fanfulla.ddns.net cam 3", url: "http://fanfulla.ddns.net:8080/cam_3.cgi" },
-
-  { id: "cam22", name: "85.93.53.175 cam 1", url: "http://85.93.53.175:8080/cam_1.cgi" },
-  { id: "cam23", name: "85.93.53.175 cam 2", url: "http://85.93.53.175:8080/cam_2.cgi" },
-];
-
-// Root
 app.get("/", (req, res) => {
-  res.send("Live Camera Backend Running");
+  res.send("Live camera backend running. Use /live?camera=1-10");
 });
 
-// List all cameras
-app.get("/live-cameras", (req, res) => {
-  res.json(cameras);
-});
-
-// Stream individual camera by ID
-app.get("/live/:id", (req, res) => {
-  const cam = cameras.find(c => c.id === req.params.id);
-  if (!cam) return res.status(404).send("Camera not found");
-
+app.get("/live", async (req, res) => {
   try {
-    request(cam.url, (response) => {
-      res.setHeader("Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-      response.pipe(res);
-    }).on("error", (err) => {
-      console.error(err);
-      res.status(500).send("Camera offline");
-    });
+    const camId = req.query.camera || "1"; // default to camera 1
+    const CAMERA_URL = CAMERA_URLS[camId];
+
+    if (!CAMERA_URL) return res.status(404).send("Camera not found");
+
+    const response = await fetch(CAMERA_URL);
+
+    // Set headers for MJPEG streaming
+    res.setHeader("Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    response.body.pipe(res);
   } catch (err) {
     console.error(err);
     res.status(500).send("Camera offline");
@@ -73,4 +46,6 @@ app.get("/live/:id", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
