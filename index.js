@@ -9,10 +9,11 @@ app.use(express.json());
 /*
   WebcamXP5 cameras + available sources
   Access format:
-  /live?camera=camera1&source=1
+  /live?camera=cameraName&source=1
 */
 
 const CAMERAS = {
+  // ===== NEW CAMERAS (camera1–camera15) =====
   camera1: { ip: "86.81.113.229:8080", sources: [1] },
   camera2: { ip: "184.57.102.6:9550", sources: [1] },
   camera3: { ip: "184.57.102.6:5432", sources: [1] },
@@ -32,7 +33,16 @@ const CAMERAS = {
   camera12: { ip: "212.107.227.117:8081", sources: [1] },
   camera13: { ip: "172.218.186.243:8082", sources: [1] },
   camera14: { ip: "31.34.72.4:8090", sources: [1, 2] },
-  camera15: { ip: "184.57.102.6:9090", sources: [1] }
+  camera15: { ip: "184.57.102.6:9090", sources: [1] },
+
+  // ===== OLD CAMERAS RE-ADDED (except old camera2 & camera8) =====
+  camera16: { ip: "139.64.168.120:8080", sources: [1, 2, 3, 4] },
+  camera17: { ip: "76.151.170.119:10001", sources: [1] },
+  camera18: { ip: "73.170.86.90:8888", sources: [1, 2, 3, 4, 5, 6, 7] },
+  camera19: { ip: "213.144.145.239:8090", sources: [1, 2] },
+  camera20: { ip: "158.174.215.151:8203", sources: [1] },
+  camera21: { ip: "61.78.164.58:8089", sources: [1] },
+  camera22: { ip: "85.93.53.175:8080", sources: [1, 2] }
 };
 
 app.get("/", (req, res) => {
