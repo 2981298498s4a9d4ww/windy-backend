@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 
 app.get("/webcams", async (req, res) => {
   try {
-    const url = new URL("https://api.windy.com/webcams/api/v3/list");
+    const url = new URL("https://api.windy.com/webcams/api/v3/webcams");
 
     url.searchParams.set("limit", "10");
     url.searchParams.set("sortKey", "popularity");
