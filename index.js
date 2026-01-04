@@ -1,53 +1,29 @@
 const express = require("express");
+const fetch = require("node-fetch");
 const cors = require("cors");
-
-// Node 18+ already has fetch built-in
-// ❌ DO NOT use node-fetch on Render
-// const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
 
-// ⚠️ Put your REAL Windy API key here
-const WINDY_KEY = "4o8vYbMixTgzP00zWvZaLKxM5nZByrb0";
+const CAMERA_URL = "http://75.149.26.30:1024/cam_1.cgi";
 
 app.get("/", (req, res) => {
-  res.send("Backend is running");
+  res.send("Live camera backend running");
 });
 
-app.get("/webcams", async (req, res) => {
+app.get("/live", async (req, res) => {
   try {
-    const url = new URL("https://api.windy.com/webcams/api/v3/webcams");
+    const response = await fetch(CAMERA_URL);
 
-    // ✅ CORRECT Windy v3 params
-    url.searchParams.set("limit", "10");
-    url.searchParams.set("include", "images,player,urls");
-    url.searchParams.set("sort", "popularity");
-    url.searchParams.set("countries", "US");
-    url.searchParams.set("categories", "city");
+    // MJPEG stream headers
+    res.setHeader("Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        "x-windy-api-key": WINDY_KEY
-      }
-    });
-
-    const data = await response.json();
-
-    // ✅ Windy response structure check
-    if (!data || !data.webcams) {
-      return res.status(500).json({
-        error: "Invalid Windy API response",
-        raw: data
-      });
-    }
-
-    // ✅ Send ONLY what frontend needs
-    res.json(data.webcams);
+    response.body.pipe(res);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).send("Camera offline");
   }
 });
 
