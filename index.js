@@ -1,19 +1,10 @@
 const express = require("express");
-const fetch = require("node-fetch");
 const cors = require("cors");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-
-/*
-  WebcamXP5 cameras + available sources
-  Access format:
-  /live?camera=cameraName&source=1
-*/
 
 const CAMERAS = {
-  // ===== NEW CAMERAS (camera1–camera15) =====
   camera1: { ip: "86.81.113.229:8080", sources: [1] },
   camera2: { ip: "184.57.102.6:9550", sources: [1] },
   camera3: { ip: "184.57.102.6:5432", sources: [1] },
@@ -35,7 +26,6 @@ const CAMERAS = {
   camera14: { ip: "31.34.72.4:8090", sources: [1, 2] },
   camera15: { ip: "184.57.102.6:9090", sources: [1] },
 
-  // ===== OLD CAMERAS RE-ADDED (except old camera2 & camera8) =====
   camera16: { ip: "139.64.168.120:8080", sources: [1, 2, 3, 4] },
   camera17: { ip: "76.151.170.119:10001", sources: [1] },
   camera18: { ip: "73.170.86.90:8888", sources: [1, 2, 3, 4, 5, 6, 7] },
@@ -45,44 +35,15 @@ const CAMERAS = {
   camera22: { ip: "85.93.53.175:8080", sources: [1, 2] }
 };
 
-app.get("/", (req, res) => {
-  res.send("Live Camera Backend running");
+app.get("/cameras", (req, res) => {
+  res.json(CAMERAS);
 });
 
-app.get("/live", async (req, res) => {
-  try {
-    const { camera, source = 1 } = req.query;
-
-    if (!camera || !CAMERAS[camera]) {
-      return res.status(400).send("Invalid camera ID");
-    }
-
-    if (!CAMERAS[camera].sources.includes(Number(source))) {
-      return res.status(400).send("Invalid source for this camera");
-    }
-
-    const streamUrl = `http://${CAMERAS[camera].ip}/cam_${source}.cgi`;
-    const response = await fetch(streamUrl);
-
-    if (!response.ok) {
-      return res.status(502).send("Camera stream not reachable");
-    }
-
-    res.setHeader(
-      "Content-Type",
-      "multipart/x-mixed-replace; boundary=--myboundary"
-    );
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    response.body.pipe(res);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Camera offline");
-  }
+app.get("/", (req, res) => {
+  res.send("Camera directory running");
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
+app.listen(PORT, () =>
+  console.log("Server running on port", PORT)
+);
