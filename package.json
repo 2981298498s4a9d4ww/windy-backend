@@ -1,14 +1,15 @@
 {
-  "name": "camera-backend",
+  "name": "live-camera-backend",
   "version": "1.0.0",
+  "description": "Backend to proxy MJPEG streams from WebcamXP5 cameras",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "node-fetch": "^2.6.9"
-  }
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  },
+  "type": "module"
 }
