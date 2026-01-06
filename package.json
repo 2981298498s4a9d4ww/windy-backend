@@ -1,15 +1,27 @@
 {
-  "name": "live-camera-backend",
+  "name": "windy-backend",
   "version": "1.0.0",
-  "description": "Backend to proxy MJPEG streams from WebcamXP5 cameras",
+  "description": "Live camera backend for Aippy - proxies MJPEG streams from WebcamXP5 cameras",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "node-fetch": "^3.3.2"
+    "cors": "^2.8.5",
+    "node-fetch": "^2.6.12"
   },
-  "type": "module"
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "camera",
+    "MJPEG",
+    "WebcamXP5",
+    "proxy",
+    "backend"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
 }
